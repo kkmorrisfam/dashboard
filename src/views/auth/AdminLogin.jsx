@@ -1,11 +1,18 @@
-import React, {useState} from 'react';
-
+import React, {useEffect, useState} from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { admin_login, messageClear } from '../../store/Reducers/authReducer';
+import {PropagateLoader } from 'react-spinners';
+import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const AdminLogin = () => {
+    const navigate = useNavigate()
+    const dispatch = useDispatch()
+    const {loader, errorMessage, successMessage} = useSelector(state=>state.auth)  //state.auth comes from authReducer =>name: 'auth' 
 
     const [state, setState] = useState({            
             email: '',
-            password: ''
+            password: ''            
         });
     
         const inputHandle = (e)=> {
@@ -17,8 +24,29 @@ const AdminLogin = () => {
     
         const submit = (e) => {
             e.preventDefault()
-            console.log(state)
+            dispatch(admin_login (state))
+            // console.log(state)
         }
+
+        const overrideStyle = {
+            display : 'flex',
+            margin : '0 auto',
+            height : '24px',
+            justifyContent : 'center',
+            alignItem : 'center'
+        }
+
+        useEffect(()=> {
+            if (errorMessage) {
+                toast.error(errorMessage) //displays error message
+                dispatch(messageClear())  //clears error message
+            }
+            if (successMessage) {
+                toast.success(successMessage)
+                dispatch(messageClear())
+                navigate('/')
+            }
+        }, [errorMessage, successMessage] );  //I think this has changed. React Hook has a missing dependency: 'dispatch'. Either include it or remove the dependency array...
 
     return (
         <div className ='min-w-screen min-h-screen bg-[#cdcae9] flex justify-center items-center'>
@@ -27,7 +55,7 @@ const AdminLogin = () => {
             <div className='h-[70px] flex justify-center items-center'>
                 <div className ='w-[180px] h-[50px]'>
                    {/* <img className='w-full h-full' src="http://localhost:3000/images/logo.png" alt="image" />  */}
-                   <img className='w-full h-full' src="/images/logo.png" alt="image" /> 
+                   <img className='w-full h-full' src="/images/logo.png" alt="logo for site" /> 
                 </div>
             </div>       
 
@@ -48,8 +76,12 @@ const AdminLogin = () => {
 
                 </div>
 
-                <button className='bg-slate-800 w-full hover:shadow-blue-300/50 hover:shadow-lg 
-                text-white rounded-md px-7 py-2 mb-3'>Login</button>
+                <button disabled={loader ? true : false} className='bg-slate-800 w-full hover:shadow-blue-300/50 hover:shadow-lg 
+                text-white rounded-md px-7 py-2 mb-3'>
+                    {
+                        loader ? <PropagateLoader color='#fff' cssOverride={overrideStyle} /> : 'Login' //if loader true; display PropogateLoader, else display "Login"
+                    }
+                    </button>
 
                 
             </form>
